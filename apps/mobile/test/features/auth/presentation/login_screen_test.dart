@@ -3,10 +3,12 @@ import 'package:firesafe_mobile/core/storage/credential_store.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'helpers/test_credential_store.dart';
+import '../../../helpers/test_credential_store.dart';
 
 void main() {
-  testWidgets('routes an unauthenticated cold start to login', (tester) async {
+  testWidgets('login requires a valid email and a non-empty password', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -17,7 +19,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Đăng nhập'), findsOneWidget);
-    expect(find.text('Chưa có tài khoản? Đăng ký'), findsOneWidget);
+    await tester.tap(find.text('Đăng nhập'));
+    await tester.pump();
+
+    expect(find.text('Nhập địa chỉ email hợp lệ.'), findsOneWidget);
+    expect(find.text('Nhập mật khẩu hợp lệ.'), findsOneWidget);
   });
 }

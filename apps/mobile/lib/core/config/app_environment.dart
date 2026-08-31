@@ -1,3 +1,9 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+final appEnvironmentProvider = Provider<AppEnvironment>(
+  (ref) => AppEnvironment.fromCompileTime(),
+);
+
 class AppEnvironment {
   const AppEnvironment({required this.apiBaseUrl, required this.name});
 

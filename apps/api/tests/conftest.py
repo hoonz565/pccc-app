@@ -61,14 +61,16 @@ async def database_app(
         async with engine.begin() as connection:
             await connection.execute(
                 text(
-                    "TRUNCATE TABLE auth_sessions, users RESTART IDENTITY CASCADE"
+                    "TRUNCATE TABLE audit_events, facilities, auth_sessions, users "
+                    "RESTART IDENTITY CASCADE"
                 )
             )
         yield application
         async with engine.begin() as connection:
             await connection.execute(
                 text(
-                    "TRUNCATE TABLE auth_sessions, users RESTART IDENTITY CASCADE"
+                    "TRUNCATE TABLE audit_events, facilities, auth_sessions, users "
+                    "RESTART IDENTITY CASCADE"
                 )
             )
     get_settings.cache_clear()
