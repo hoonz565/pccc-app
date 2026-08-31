@@ -13,6 +13,10 @@ async def test_ready_connects_to_postgres(monkeypatch: pytest.MonkeyPatch) -> No
         pytest.skip("Set RUN_DATABASE_TESTS=1 to run PostgreSQL integration tests")
 
     monkeypatch.setenv("APP_ENV", "test")
+    monkeypatch.setenv(
+        "AUTH_SIGNING_SECRET",
+        "test-only-signing-secret-with-at-least-32-characters",
+    )
     get_settings.cache_clear()
     application = create_app()
     async with lifespan(application):
