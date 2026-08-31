@@ -1,0 +1,3 @@
+Alembic migration environment for the FireSafe modular monolith.
+
+Sprint 0 intentionally contains no schema revisions. Business migrations begin with their vertical slices.
