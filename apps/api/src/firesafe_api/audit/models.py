@@ -12,6 +12,8 @@ class AuditEvent(Base):
     __table_args__ = (
         Index("ix_audit_events_user_occurred_at", "user_id", "occurred_at"),
         Index("ix_audit_events_facility_id", "facility_id"),
+        Index("ix_audit_events_area_id", "area_id"),
+        Index("ix_audit_events_asset_id", "asset_id"),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
@@ -24,6 +26,16 @@ class AuditEvent(Base):
         Uuid,
         ForeignKey("facilities.id", ondelete="RESTRICT"),
         nullable=False,
+    )
+    area_id: Mapped[UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("areas.id", ondelete="RESTRICT"),
+        nullable=True,
+    )
+    asset_id: Mapped[UUID | None] = mapped_column(
+        Uuid,
+        ForeignKey("assets.id", ondelete="RESTRICT"),
+        nullable=True,
     )
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(

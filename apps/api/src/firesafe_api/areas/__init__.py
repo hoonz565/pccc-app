@@ -1,0 +1,1 @@
+"""Facility Area vertical slice."""

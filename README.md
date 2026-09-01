@@ -29,7 +29,20 @@ Home -> logout -> Login/Register
 
 The slice crosses Flutter, a FastAPI modular monolith, PostgreSQL ownership, and append-only Facility creation audit. Access tokens are short-lived JWTs; opaque refresh tokens rotate through revocable PostgreSQL sessions.
 
-Areas, Assets, OCR/QR, inspections, reminders, notifications, file storage, reporting, offline synchronization, password reset, advanced RBAC, and Facility edit/delete remain out of scope.
+OCR/QR, inspections, reminders, notifications, file storage, reporting, offline synchronization, password reset, advanced RBAC, and Facility edit/delete remain out of scope for Sprint 1.
+
+## Sprint 2 vertical slice
+
+Sprint 2 extends the authenticated product path:
+
+```text
+Home -> select Facility -> Area list/create -> Asset list
+     -> manual Asset create -> Asset Detail -> revision-safe Asset edit
+```
+
+Area ownership is derived through Facility. Asset ownership uses the single normalized path `Asset → Area → Facility → User`; neither `user_id` nor `facility_id` is duplicated on Asset. Manual Assets receive a server-generated `AST-<UUID>` code, `ACTIVE` lifecycle, `MANUAL` provenance, and revision `1`.
+
+The manual `AssetDraft` form is the authoritative creation boundary. Future OCR may pre-fill that draft, but cannot bypass user review and explicit save. OCR, milestone persistence, operational-status derivation, inspection, reminder, image, and offline-sync infrastructure are not implemented in Sprint 2.
 
 ## Prerequisites
 
@@ -97,7 +110,7 @@ The default address is `http://127.0.0.1:8000`.
 - `GET /ready` returns HTTP 503 with a sanitized response when PostgreSQL is unavailable.
 - Sprint 1 business endpoints are under `/api/v1`.
 
-### Sprint 1 API
+### Business API
 
 | Method | Path | Purpose |
 | --- | --- | --- |
@@ -108,6 +121,12 @@ The default address is `http://127.0.0.1:8000`.
 | `GET` | `/api/v1/me` | Resolve the authenticated user |
 | `POST` | `/api/v1/facilities` | Create an owner-scoped first Facility and audit event |
 | `GET` | `/api/v1/facilities` | List only the current user's Facilities |
+| `GET` | `/api/v1/facilities/{facility_id}/areas` | List Areas under an owned Facility |
+| `POST` | `/api/v1/facilities/{facility_id}/areas` | Create Area and `area_created` audit atomically |
+| `GET` | `/api/v1/areas/{area_id}/assets?limit=50&offset=0` | Owner-scoped bounded Asset list (`limit` 1–100) |
+| `POST` | `/api/v1/areas/{area_id}/assets` | Create a manual Asset and `asset_created` audit atomically |
+| `GET` | `/api/v1/assets/{asset_id}` | Get owner-scoped Asset Detail |
+| `PATCH` | `/api/v1/assets/{asset_id}` | Edit profile/location with required `base_revision`; stale writes return `409 VERSION_CONFLICT` |
 
 Verify locally:
 
@@ -125,7 +144,7 @@ Invoke-RestMethod http://127.0.0.1:8000/ready
 & .\apps\api\.venv\Scripts\python.exe -m pytest apps\api\tests -m "not integration"
 ```
 
-Use a dedicated local test database because the integration fixture truncates Sprint 1 tables between tests. Create and migrate it once:
+Use a dedicated local test database because the integration fixture truncates implemented domain tables between tests. Create and migrate it once:
 
 ```powershell
 docker compose exec -T postgres createdb -U firesafe firesafe_test
@@ -138,7 +157,7 @@ $env:RUN_DATABASE_TESTS = '1'
 
 ## Alembic
 
-Sprint 1 contains two ordered migrations: identity/auth sessions, then owned Facilities/audit events.
+Migrations are ordered by vertical slice: identity/auth sessions, Facilities/audit, Areas, then manual Assets.
 
 ```powershell
 & .\apps\api\.venv\Scripts\python.exe -m alembic -c apps\api\alembic.ini upgrade head
@@ -165,7 +184,9 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000 --dart-define=APP_EN
 
 `10.0.2.2` is the standard Android Emulator alias for the host machine. Local cleartext HTTP must be enabled only in the Android debug manifest; production configuration must remain HTTPS-only.
 
-Routing is driven by application state: bootstrap, unauthenticated login/register, authenticated first-Facility onboarding, or Home. The refresh token is stored in Android secure storage and the access token remains in memory. Logout excludes concurrent refresh, deletes the secure credential before reporting success, and uses the access-token `sid` for best-effort server revocation.
+Routing is driven by application state: bootstrap, unauthenticated login/register, authenticated first-Facility onboarding, or authenticated product routes. Home holds an explicit Facility selection; Area and Asset route IDs form the visible context while the backend independently enforces ownership. The refresh token is stored in Android secure storage and the access token remains in memory. Logout excludes concurrent refresh, deletes the secure credential before reporting success, and uses the access-token `sid` for best-effort server revocation.
+
+Create requests are not automatically retried after an ambiguous network failure. Without the future `client_operation_id`/idempotency protocol, a lost response may follow a successful server commit. The app retains the draft and instructs the user to inspect the relevant list before manually retrying.
 
 An Android debug APK can be built with:
 
@@ -192,4 +213,5 @@ GitHub Actions runs independent backend and mobile jobs. The backend job validat
 - [`ADR 0001: Use Flutter for the Mobile Application`](docs/adr/0001-use-flutter-for-mobile.md)
 - [`ADR 0002: Use a Modular Monolith Backend`](docs/adr/0002-use-modular-monolith-backend.md)
 - [`ADR 0003: Use Short-Lived JWTs with Revocable Refresh Sessions`](docs/adr/0003-use-revocable-refresh-sessions.md)
-- [`Sprint 1 requirement traceability`](docs/traceability.md)
+- [`ADR 0004: Derive Asset Ownership Through Area`](docs/adr/0004-derive-asset-ownership-through-area.md)
+- [`Implemented requirement traceability`](docs/traceability.md)
