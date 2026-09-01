@@ -13,6 +13,22 @@ final appSessionControllerProvider =
       AppSessionController.new,
     );
 
+final authenticatedSessionIdentityProvider =
+    Provider<AuthenticatedSessionIdentity?>((ref) {
+      final principalId = ref.watch(
+        appSessionControllerProvider.select((session) => session.user?.id),
+      );
+      return principalId == null
+          ? null
+          : AuthenticatedSessionIdentity(principalId);
+    });
+
+class AuthenticatedSessionIdentity {
+  const AuthenticatedSessionIdentity(this.principalId);
+
+  final String principalId;
+}
+
 class AppSessionController extends Notifier<AppSessionState> {
   @override
   AppSessionState build() => const AppSessionState.bootstrapping();
@@ -169,6 +185,11 @@ class AppSessionController extends Notifier<AppSessionState> {
         errorMessage: 'Không thể hoàn tất đăng xuất. Vui lòng thử lại.',
       );
     }
+  }
+
+  Future<void> invalidateSession() async {
+    await ref.read(accessTokenManagerProvider).clearSession();
+    state = const AppSessionState.unauthenticated();
   }
 
   void setAuthenticatedFacilities({

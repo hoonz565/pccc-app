@@ -61,7 +61,8 @@ async def database_app(
         async with engine.begin() as connection:
             await connection.execute(
                 text(
-                    "TRUNCATE TABLE audit_events, facilities, auth_sessions, users "
+                    "TRUNCATE TABLE audit_events, assets, areas, facilities, "
+                    "auth_sessions, users "
                     "RESTART IDENTITY CASCADE"
                 )
             )
@@ -69,7 +70,8 @@ async def database_app(
         async with engine.begin() as connection:
             await connection.execute(
                 text(
-                    "TRUNCATE TABLE audit_events, facilities, auth_sessions, users "
+                    "TRUNCATE TABLE audit_events, assets, areas, facilities, "
+                    "auth_sessions, users "
                     "RESTART IDENTITY CASCADE"
                 )
             )
