@@ -1,5 +1,5 @@
 name: firesafe_mobile
-description: "FireSafe engineering walking skeleton"
+description: "FireSafe identity and first-Facility mobile application"
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^3.4.2
+  flutter_secure_storage: ^10.3.1
+  go_router: ^18.0.0
 
 dev_dependencies:
   flutter_test:

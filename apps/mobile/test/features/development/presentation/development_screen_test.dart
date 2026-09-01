@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:firesafe_mobile/app.dart';
 import 'package:firesafe_mobile/core/config/app_environment.dart';
-import 'package:firesafe_mobile/core/network/dio_provider.dart';
 import 'package:firesafe_mobile/features/development/data/connectivity_repository.dart';
+import 'package:firesafe_mobile/features/development/presentation/development_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -50,7 +49,7 @@ Future<void> _pumpApp(
         ),
         connectivityRepositoryProvider.overrideWithValue(repository),
       ],
-      child: const FireSafeApp(),
+      child: const MaterialApp(home: DevelopmentScreen()),
     ),
   );
   await tester.pump();

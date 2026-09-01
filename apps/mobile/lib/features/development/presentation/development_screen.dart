@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/network/dio_provider.dart';
+import '../../../core/config/app_environment.dart';
 import '../application/connectivity_controller.dart';
 import '../application/connectivity_state.dart';
 

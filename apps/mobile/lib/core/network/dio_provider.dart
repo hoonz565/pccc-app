@@ -3,10 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_environment.dart';
 
-final appEnvironmentProvider = Provider<AppEnvironment>(
-  (ref) => AppEnvironment.fromCompileTime(),
-);
-
 final dioProvider = Provider<Dio>((ref) {
   final environment = ref.watch(appEnvironmentProvider);
   return Dio(
