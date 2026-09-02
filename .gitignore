@@ -46,3 +46,16 @@ Thumbs.db
 *.tmp
 *.swp
 *.swo
+
+# Local OCR models, caches, datasets, and benchmark output
+.paddlex/
+.paddleocr/
+research/ocr/models/
+research/ocr/output/
+research/ocr/benchmark/metadata.csv
+research/ocr/local_samples/
+research/ocr/samples/*
+!research/ocr/samples/.gitkeep
+*.pdmodel
+*.pdparams
+*.safetensors

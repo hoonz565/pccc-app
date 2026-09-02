@@ -27,4 +27,16 @@ This table covers only the identity and first-Facility vertical slice implemente
 | FR-M6.5 — Preserve manual provenance | Asset create/list/detail/update APIs | `assets.source = MANUAL`, server-controlled check | Clients cannot submit or edit source; relevant responses include it | Detail shows `MANUAL` | Strict-schema/source tests in `test_assets_postgres.py`; detail widget test | Verified on Pixel_8 Android emulator: scenarios C/D (2026-09-01) |
 | NFR-S3 — Server-side ownership on every Area/Asset resource | All Area/Asset endpoints | Indexed normalized hierarchy | Missing and foreign resources share safe `404`; protected routes require active auth session | UI never acts as the authorization boundary | Cross-user create/list/get/edit and route-tampering tests | Runtime User B tampering returned safe `404`; expired access token refreshed and retried once: scenarios I/J/L (2026-09-01) |
 
-The scan/skip portion of FR-M1.4, Facility edit/aggregate counts, Area edit/delete, Asset delete/archive/reassignment, OCR/QR, ServiceMilestone persistence, inspections, reminders, and offline sync are not represented as completed work.
+The scan/skip portion of FR-M1.4, Facility edit/aggregate counts, Area edit/delete, Asset delete/archive/reassignment, QR resolution, confirmed OCR-to-domain writes, ServiceMilestone persistence, inspections, reminders, and offline sync are not represented as completed work.
+
+## Sprint 3 — Structured OCR date extraction
+
+| Requirement | API / infrastructure | Backend application logic | Flutter flow | Automated tests |
+| --- | --- | --- | --- | --- |
+| FR-M3.1 subset — provide a printed/stamped label image | Authenticated `POST /api/v1/ocr/date-extractions`; bounded JPEG/PNG/WebP multipart input | Server-side PP-OCRv5 adapter is lazy and replaceable; images are temporary and not persisted | Home → camera or gallery → upload/processing states | `test_ocr_api.py`; `date_extraction_controller_test.dart`; `date_extraction_screen_test.dart` |
+| FR-M3.2 — show candidate and confidence | Typed response preserves raw/corrected/normalized text, component scores, anchor/layout provenance, image warnings, and corrections | Confidence is a documented high/medium/low application category, not calibrated precision | Review shows raw OCR, editable date, confidence guidance, and warnings | Candidate API and rendering tests |
+| FR-M3.4 / NFR-C1 — explicit confirmation | Extraction endpoint is stateless and has no domain-write dependency | Candidate cannot create Asset/Inspection/milestone data; no migration was added | Confirm returns reviewed ISO date and accepted-versus-corrected signal only | Controller confirm and widget callback tests |
+| FR-M3.6 — recovery | Distinct errors for unsupported/corrupt images, no text, no date, and unavailable/failed OCR engine | Deterministic stages use fake recognizers in normal tests | Retry, take another photo, or select another image | API error mapping and mobile recovery tests |
+| NFR-M1 / NFR-T1 — replaceable provider | `DateRecognizer` protocol; Paddle result objects translated at adapter boundary | Parser, anchor matching, geometry, calendar validation, and confidence are provider-independent | Repository/controller tests use fakes | Parser, anchor, selector, API, controller, and widget tests |
+
+Sprint 3 does not yet confirm a date into an Asset or ServiceMilestone, persist scan sessions/images, support production handwritten recognition, or implement QR resolution. Those remain outside this stateless extraction slice.

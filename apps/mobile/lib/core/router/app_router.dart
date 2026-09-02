@@ -15,6 +15,7 @@ import '../../features/assets/presentation/create_asset_screen.dart';
 import '../../features/assets/presentation/edit_asset_screen.dart';
 import '../../features/facilities/presentation/first_facility_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/ocr/presentation/date_extraction_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = _RouterRefreshNotifier();
@@ -49,6 +50,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const FirstFacilityScreen(),
       ),
       GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+      GoRoute(
+        path: '/ocr/date-extraction',
+        builder: (_, _) => const DateExtractionScreen(),
+      ),
       GoRoute(
         path: '/facilities/:facilityId/areas',
         builder: (_, state) =>
@@ -85,6 +90,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
 bool _isAuthenticatedProductRoute(String location) {
   return location == '/home' ||
+      location.startsWith('/ocr/') ||
       location.startsWith('/facilities/') ||
       location.startsWith('/areas/') ||
       location.startsWith('/assets/');

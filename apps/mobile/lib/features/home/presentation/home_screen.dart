@@ -80,6 +80,12 @@ class HomeScreen extends ConsumerWidget {
                 icon: const Icon(Icons.apartment),
                 label: const Text('Xem khu vực và thiết bị'),
               ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/ocr/date-extraction'),
+                icon: const Icon(Icons.document_scanner_outlined),
+                label: const Text('Nhận dạng ngày trên tem'),
+              ),
               if (session.errorMessage case final errorMessage?) ...[
                 const SizedBox(height: 16),
                 Text(
