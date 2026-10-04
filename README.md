@@ -44,6 +44,20 @@ Area ownership is derived through Facility. Asset ownership uses the single norm
 
 The manual `AssetDraft` form is the authoritative creation boundary. Future OCR may pre-fill that draft, but cannot bypass user review and explicit save. OCR, milestone persistence, operational-status derivation, inspection, reminder, image, and offline-sync infrastructure are not implemented in Sprint 2.
 
+## Sprint 3 OCR date-extraction vertical slice
+
+Sprint 3 adds a stateless, authenticated recognition path:
+
+```text
+Camera/gallery image -> image validation -> PP-OCRv5 text boxes
+-> Vietnamese date anchor -> layout candidate -> deterministic parser
+-> calendar validation -> editable mobile review -> explicit confirmation
+```
+
+OCR output remains candidate evidence. The extraction endpoint does not create or update an Asset, Inspection, service milestone, image record, or audit event. The Flutter review controller returns the reviewed ISO date and whether the user accepted the OCR value unchanged; a later authoritative workflow must decide how to consume it.
+
+PP-OCRv5 runs server-side behind a replaceable `DateRecognizer` boundary. DARE and TrOCR are future adapters, not dependencies of the current application. No Sprint 3 database migration is required.
+
 ## Prerequisites
 
 - Windows 11 and PowerShell
@@ -95,6 +109,16 @@ python -m pip install -r apps\api\requirements-dev.lock
 python -m pip install --no-deps -e apps\api
 ```
 
+The deterministic API and test runtime includes Pillow and multipart parsing but excludes the large ML stack. To enable local PP-OCRv5 inference:
+
+```powershell
+python -m pip install -e ".\apps\api[ocr]"
+```
+
+The optional versions are pinned to PaddleOCR `3.7.0`, PaddlePaddle `3.3.1`, and PaddleX OCR core `3.7.2`, all supporting Python 3.12. PyYAML is held at `6.0.2` because that PaddleX release requires it. Only PaddleOCR's default general-OCR capability is installed; document parsing, translation, and other `[all]` extras are deliberately excluded. The Windows CPU baseline disables MKL-DNN because the pinned native runtime otherwise fails on the PP-OCRv5 graph; ordinary Paddle CPU inference remains enabled. PaddleOCR constructs the PP-OCRv5 pipeline lazily on the first OCR request. When model directories are not already cached, PaddleOCR downloads its official model weights (Hugging Face is its default source; `PADDLE_PDX_MODEL_SOURCE=BOS` selects the documented BOS source). Pre-cache models during deployment preparation when runtime egress is unavailable. Model weights and caches must never be committed.
+
+If the optional runtime or model is unavailable, the API starts normally and the OCR endpoint returns the controlled `OCR_UNAVAILABLE` error rather than downloading models during unrelated tests.
+
 Start the API with the Windows-compatible event loop entry point:
 
 ```powershell
@@ -127,6 +151,28 @@ The default address is `http://127.0.0.1:8000`.
 | `POST` | `/api/v1/areas/{area_id}/assets` | Create a manual Asset and `asset_created` audit atomically |
 | `GET` | `/api/v1/assets/{asset_id}` | Get owner-scoped Asset Detail |
 | `PATCH` | `/api/v1/assets/{asset_id}` | Edit profile/location with required `base_revision`; stale writes return `409 VERSION_CONFLICT` |
+| `POST` | `/api/v1/ocr/date-extractions` | Authenticated multipart image extraction; returns a stateless, confirmation-required date candidate |
+
+Example OCR request using an access token already obtained from login:
+
+```powershell
+curl.exe -X POST http://127.0.0.1:8000/api/v1/ocr/date-extractions `
+  -H "Authorization: Bearer $env:FIRESAFE_ACCESS_TOKEN" `
+  -F "image=@C:\path\to\label.jpg;type=image/jpeg" `
+  -F "expected_field_type=inspection_date"
+```
+
+The response distinguishes raw OCR, normalized date, corrections, anchor/layout provenance, validation, image quality, and `requires_confirmation`. Expected failures use `UNSUPPORTED_IMAGE_TYPE`, `IMAGE_TOO_LARGE`, `IMAGE_DECODING_FAILED`, `IMAGE_DIMENSIONS_INVALID`, `OCR_NO_TEXT`, `OCR_NO_DATE_CANDIDATE`, `OCR_UNAVAILABLE`, or `OCR_ENGINE_FAILURE`; stack traces and image contents are not returned.
+
+Run the optional local engine check only after installing the OCR extra and supplying a private image:
+
+```powershell
+$env:RUN_OCR_INTEGRATION = '1'
+$env:OCR_TEST_IMAGE = 'C:\path\to\label.jpg'
+& .\apps\api\.venv\Scripts\python.exe -m pytest apps\api\tests\test_ocr_paddle_integration.py -m integration
+```
+
+Benchmark setup and commands are documented in [`research/ocr/README.md`](research/ocr/README.md). Known Sprint 3 limitations include uncalibrated confidence categories, no production handwritten-date adapter, sensitivity to severe blur/glare/curvature, and layouts whose anchor and date are both missed by OCR.
 
 Verify locally:
 
@@ -214,4 +260,5 @@ GitHub Actions runs independent backend and mobile jobs. The backend job validat
 - [`ADR 0002: Use a Modular Monolith Backend`](docs/adr/0002-use-modular-monolith-backend.md)
 - [`ADR 0003: Use Short-Lived JWTs with Revocable Refresh Sessions`](docs/adr/0003-use-revocable-refresh-sessions.md)
 - [`ADR 0004: Derive Asset Ownership Through Area`](docs/adr/0004-derive-asset-ownership-through-area.md)
+- [`ADR 0005: Use a Server-Side Replaceable OCR Recognizer`](docs/adr/0005-use-server-side-replaceable-ocr.md)
 - [`Implemented requirement traceability`](docs/traceability.md)

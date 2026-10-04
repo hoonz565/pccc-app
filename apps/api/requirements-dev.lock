@@ -77,6 +77,8 @@ packaging==26.3
     #   wheel
 pathspec==1.1.1
     # via mypy
+pillow==12.3.0
+    # via firesafe-api (apps/api/pyproject.toml)
 pip-tools==7.6.1
     # via firesafe-api (apps/api/pyproject.toml)
 pluggy==1.6.0
@@ -114,8 +116,12 @@ python-dotenv==1.2.3
     # via
     #   pydantic-settings
     #   uvicorn
-pyyaml==6.0.3
-    # via uvicorn
+python-multipart==0.0.32
+    # via firesafe-api (apps/api/pyproject.toml)
+pyyaml==6.0.2
+    # via
+    #   firesafe-api (apps/api/pyproject.toml)
+    #   uvicorn
 ruff==0.16.5
     # via firesafe-api (apps/api/pyproject.toml)
 sqlalchemy==2.0.52

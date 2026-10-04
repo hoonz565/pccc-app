@@ -55,6 +55,7 @@ void main() {
       await tester.pumpAndSettle();
 
       for (final location in [
+        '/ocr/date-extraction',
         '/facilities/facility-id/areas',
         '/areas/area-id/assets',
         '/assets/asset-id',

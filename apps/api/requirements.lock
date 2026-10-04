@@ -42,6 +42,8 @@ mako==1.4.1
     # via alembic
 markupsafe==3.0.3
     # via mako
+pillow==12.3.0
+    # via firesafe-api (apps/api/pyproject.toml)
 psycopg==3.3.4
     # via firesafe-api (apps/api/pyproject.toml)
 psycopg-binary==3.3.4
@@ -63,8 +65,12 @@ python-dotenv==1.2.3
     # via
     #   pydantic-settings
     #   uvicorn
-pyyaml==6.0.3
-    # via uvicorn
+python-multipart==0.0.32
+    # via firesafe-api (apps/api/pyproject.toml)
+pyyaml==6.0.2
+    # via
+    #   firesafe-api (apps/api/pyproject.toml)
+    #   uvicorn
 sqlalchemy==2.0.52
     # via
     #   alembic
